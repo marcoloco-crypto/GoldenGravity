@@ -1,0 +1,1 @@
+A Python program that models a spacetime field, S, as a gravitational wave. It uses a Fibonacci grid for space, the golden ratio for time steps, and calculates F_QC for time travel. It saves a picture in the plots folder.
