@@ -26,4 +26,3 @@ plt.savefig('../plots/gravitational_modulator.png')
 plt.close()
 print("Gravitational modulator plot saved to: ../plots/gravitational_modulator.png")
 print("gravitational_modulator_sim.py complete.")
-
