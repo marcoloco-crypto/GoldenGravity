@@ -11,7 +11,7 @@ L = 1e-10          # Spatial domain (meters, Planck scale)
 T = 5000           # Time steps
 N = 100            # Spatial points
 T_vac = 2.7        # Vacuum temperature (K)
-I_0 = 1e-3         # Reference intensity (J m^-2) for F_QC scaling
+I_0 = 1e4          # Reference intensity (J m^-2) for F_QC scaling
 rho_exotic = 1e5   # Exotic matter density (kg m^-3) for CTCs
 
 # Fibonacci-scaled grid for fractal-like spacetime
