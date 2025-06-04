@@ -1,0 +1,68 @@
+name: ESQET Simulations and LaTeX Compilation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  run-simulations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy matplotlib
+
+      - name: Run simulations
+        run: |
+          mkdir -p plots
+          python simulations/fibonacci_spacetime_evolution_sim.py
+          python simulations/gravitational_modulator_sim.py
+          python simulations/spacetime_evolution_sim.py
+
+      - name: Upload simulation outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulation-outputs
+          path: |
+            plots/*.png
+            figures/*.png
+            figures/*.jpg
+
+  compile-latex:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX paper
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          latexmk_use_lualatex: true
+          extra_files: |
+            introduction.tex
+            theory.tex
+            comparison.tex
+            conclusion.tex
+            predictions.tex
+            references.bib
+            figures/*.png
+            figures/*.jpg
+
+      - name: Upload LaTeX output
+        uses: actions/upload-artifact@v4
+        with:
+          name: latex-output
+          path: main.pdf
