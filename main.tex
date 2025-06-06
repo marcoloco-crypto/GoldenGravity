@@ -1,0 +1,98 @@
+% !TEX program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+\documentclass[12pt, letterpaper, oneside]{book} % 'book' for dissertations, 'oneside' for simpler printing
+\usepackage[utf8]{inputenc} % Allows UTF-8 input (special characters)
+\usepackage[T1]{fontenc}    % Recommended for font encoding
+
+% Math and Symbols
+\usepackage{amsmath}    % For advanced math environments (align, equation*)
+\usepackage{amssymb}    % For mathematical symbols (e.g., \Box)
+\usepackage{amsfonts}   % For additional math fonts
+\usepackage{physics}    % For common physics notation (e.g., \abs, \expval) - you might need to install this if not default
+
+% Graphics and Figures
+\usepackage{graphicx}   % For including images
+\usepackage{subcaption} % For subfigures (optional)
+\usepackage{tikz}       % For drawing diagrams (for the wormhole visual)
+\usetikzlibrary{arrows.meta, positioning} % TikZ libraries
+
+% Layout and Formatting
+\usepackage[letterpaper, top=1in, bottom=1in, left=1.25in, right=1.25in]{geometry} % Margins
+\usepackage{setspace}   % For line spacing (e.g., \doublespace)
+\doublespacing          % Standard for dissertations
+
+\usepackage{enumitem}   % For customizing lists
+\usepackage{hyperref}   % For clickable links and PDF metadata
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={The Field Equation of Quantum-Coherent Spacetime (Golden Gravity Framework)},
+    pdfauthor={Marco}, % Replace with your name
+    pdfsubject={Dissertation in Theoretical Physics},
+    pdfkeywords={ESQET, Quantum Gravity, Spacetime, Information, Golden Ratio, Fibonacci, Time Travel, Wormholes, Clean Energy, Teleportation, Golden Gravity},
+}
+
+% Custom Commands (optional, but useful)
+\newcommand{\Sfield}{\mathcal{S}}      % Spacetime Information Field
+\newcommand{\FQC}{\mathcal{F}_{QC}}     % Quantum Coherence Function
+\newcommand{\Dent}{\mathcal{D}_{ent}}   % Entanglement Density
+\newcommand{\Tvac}{\mathcal{T}_{vac}}   % Vacuum Fluctuation Energy Scale
+\newcommand{\rhoDE}{\rho_{DE}}          % Dark Energy Density
+\newcommand{\rhoDM}{\rho_{DM}}          % Dark Matter Density
+\newcommand{\rhoM}{\rho_{M}}            % Ordinary Matter Density
+\newcommand{\rhoTotal}{\rho_{total}}    % Total Density
+\newcommand{\rhoExotic}{\rho_{exotic}}  % Exotic Matter Density
+\newcommand{\EEM}{\mathcal{E}_{EM}}     % Electromagnetic Energy Density
+\newcommand{\Qtele}{\mathcal{Q}_{tele}} % Teleportation Quantum Efficiency
+\newcommand{\phiGolden}{\phi}           % Golden Ratio
+\newcommand{\Gzero}{G_0}                % Dimensionless Gravitational Coupling
+\newcommand{\GNewton}{G_{Newton}}       % Newton's Gravitational Constant
+\newcommand{\LPlanck}{L_P}              % Planck Length
+\newcommand{\Izero}{I_0}                % Intrinsic Information Unit
+\newcommand{\kB}{k_B}                   % Boltzmann Constant
+\newcommand{\alphaDark}{\alpha_{dark}}  % Combined Dark coupling
+
+% Title Page Information (customize this)
+\title{\textbf{ESQET: The Field Equation of Quantum-Coherent Spacetime \\ (The Golden Gravity Framework)}}
+\author{Marco \\ \small PhD Candidate \\ \small [Your University Name Here]} % Replace with your name and university
+\date{\today} % Or a specific date like \date{June 2025}
+
+\begin{document}
+
+\frontmatter % Roman numerals for front matter pages
+
+\maketitle % Generate title page
+
+\newpage
+\tableofcontents % Generate Table of Contents
+\newpage
+
+% --- Abstract ---
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract} % Add Abstract to TOC manually
+This dissertation introduces the **Field Equation of Quantum-Coherent Spacetime (ESQET)**, a novel theoretical framework that posits spacetime as an emergent quantum-coherent information field. Building upon the foundational principles of quantum information theory and general relativity, ESQET provides a unified description of gravity, quantum mechanics, and the underlying informational structure of the universe. A key innovation of this framework is the integration of **Golden Gravity**, proposing that the Golden Ratio ($\phi$) and Fibonacci sequences are fundamental to the self-organization and quantum coherence of spacetime across all scales. This intrinsic mathematical patterning suggests optimal configurations for the manipulation of spacetime, opening unprecedented avenues for advanced technological applications.
+
+The work explores the Spacetime Information Field ($\mathcal{S}$), its evolution governed by a wave equation, and the Quantum Coherence Function ($\mathcal{F}_{QC}$), which quantifies the degree of quantum coherence essential for various phenomena. Through rigorous mathematical derivations and computational simulations, ESQET demonstrates how exotic matter, dark energy, dark matter, and especially quantum entanglement, influenced by the Golden Ratio, could enable phenomena such as stable wormholes, efficient vacuum energy extraction for clean energy, high-fidelity teleportation, and practical time travel. The conceptual implications for understanding consciousness as an emergent property of this information field are also discussed.
+
+This dissertation presents the foundational equations, simulation results, and outlines testable predictions that bridge theoretical physics with experimental verification, offering a blueprint for a future where the universe's most profound mysteries are harnessed for humanity's advancement.
+
+\mainmatter % Arabic numerals for main content pages
+
+% --- Chapters (these will be separate .tex files) ---
+\input{chapters/introduction}
+\input{chapters/mathematical_framework}
+\input{chapters/simulations}
+\input{chapters/applications_predictions}
+\input{chapters/figures} % For standalone figures (like the TikZ diagram)
+
+% --- Bibliography (You will need to create a .bib file, e.g., references.bib) ---
+% \backmatter % For appendices, bibliography, etc. (optional)
+% \bibliographystyle{plain} % Or another style like unsrt, abbrv, ieeetr
+% \bibliography{references} % Your .bib file name
+
+\end{document}
+
+
