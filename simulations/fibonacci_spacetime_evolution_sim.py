@@ -11,7 +11,9 @@ k_B = 1.380649e-23  # Boltzmann Constant (J/K)
 # ESQET specific constants (using explicit Planck values for the core framework)
 G_0 = 1.0           # Dimensionless gravitational coupling constant (ESQET)
 alpha_dark = 0.4    # Combined Dark Matter/Energy Coupling for F_QC
-phi = (1 + np.sqrt(5)) / 2  # Golden Ratio (approx 1.618)
+phi = (1 + np.sqrt(5)) / 2  # Golden Ratio (approx 1.6180339887)
+# NEW: Combined phi * pi factor
+PHI_PI = phi * np.pi # Approximately 5.083203692
 
 I_0_PLANCK = 1.956e9         # Intrinsic Information Unit (J) - Set to Planck Energy (E_Pl)
 T_VAC_PLANCK = 1.416808e32   # Vacuum Fluctuation Energy Scale (K) - Set to Planck Temperature (T_Pl)
@@ -21,15 +23,16 @@ T_VAC_PLANCK = 1.416808e32   # Vacuum Fluctuation Energy Scale (K) - Set to Plan
 def F_QC(D_ent, T_vac_current, rho_Dark, rho_total):
     """
     Calculates the Refined Quantum Coherence Function F_QC (v2.0).
-    Now explicitly uses Golden Ratio (phi). The I_0_PLANCK and k_B are global constants.
+    Now explicitly uses the combined Golden Ratio * Pi (PHI_PI).
+    The I_0_PLANCK and k_B are global constants.
     T_vac_current is the *effective* vacuum temperature for a given scenario.
     """
     t_vac_safe = np.maximum(T_vac_current, 1e-30)
     rho_total_safe = np.maximum(rho_total, 1e-30)
 
-    # Term 1: Entanglement and Vacuum Energy, now with phi directly
+    # Term 1: Entanglement and Vacuum Energy, now with PHI_PI directly
     # Note: The ratio (I_0_PLANCK / (k_B * T_VAC_PLANCK)) is approx 1
-    term1 = 1 + phi * (D_ent * I_0_PLANCK) / (k_B * t_vac_safe)
+    term1 = 1 + PHI_PI * (D_ent * I_0_PLANCK) / (k_B * t_vac_safe)
     term2 = 1 + alpha_dark * (rho_Dark / rho_total_safe)
 
     return term1 * term2
@@ -84,7 +87,7 @@ source_width_grid_points = 10 # in grid points
 source_profile = np.exp(-((np.arange(Nx) - source_location_idx)**2) / (2 * source_width_grid_points**2))
 
 # --- Field Equation Evolution (1+1D using Finite Differences) ---
-print("Simulating S field evolution (v2.0, Planck-anchored)...")
+print("Simulating S field evolution (v2.0, Planck-anchored, phi*pi)...")
 
 # Initialize S_field for explicit finite difference
 S_field_prev = np.zeros(Nx)
@@ -151,7 +154,7 @@ plt.imshow(S_history, aspect='auto', origin='lower', extent=[x_fib[0], x_fib[-1]
 plt.colorbar(label=r'Spacetime Information Field ($\mathcal{S}$)')
 plt.xlabel('Spatial Dimension (m) - Fibonacci Scaled')
 plt.ylabel('Time Evolution (arbitrary units)')
-plt.title(r'Spacetime Information Field ($\mathcal{S}$) Evolution (v2.0) on Fibonacci Grid')
+plt.title(r'Spacetime Information Field ($\mathcal{S}$) Evolution (v2.0) ($\phi \cdot \pi$)')
 plt.grid(False)
 
 # Save the plot
@@ -161,5 +164,4 @@ plt.close()
 
 print(f"S field evolution plot (v2.0) saved to: {plot_filename}")
 print("fibonacci_spacetime_evolution_sim.py (v2.0) complete.")
-
 
