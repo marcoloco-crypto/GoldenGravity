@@ -45,24 +45,24 @@ dt = Lt / Nt
 
 # Initial conditions for S field (start with a small perturbation)
 S_field = np.zeros((Nt, Nx))
-# Drastically reduced initial perturbation
-S_field[0, Nx // 2] = 1e-6 # Even smaller initial value
+# Drastically reduced initial perturbation further
+S_field[0, Nx // 2] = 1e-8 # Even smaller initial value
 
 # --- Scenario Specific Parameters (for Field Equation inputs) ---
 RHO_M_BACKGROUND = 1e-27            # kg/m^3, avg matter density
-E_EM_BACKGROUND = 1e-18             # J/m^3, avg EM energy density (reduced)
+E_EM_BACKGROUND = 1e-20             # J/m^3, avg EM energy density (further reduced)
 RHO_DARK_BACKGROUND = 0.9e-26       # kg/m^3, avg combined dark matter/energy density
 RHO_TOTAL_BACKGROUND = RHO_M_BACKGROUND + RHO_DARK_BACKGROUND + (E_EM_BACKGROUND / c**2) # kg/m^3
 
-D_ENT_BACKGROUND = 1e-15            # Conceptual entanglement density (reduced)
+D_ENT_BACKGROUND = 1e-18            # Conceptual entanglement density (further reduced)
 
 # Define a localized source term (e.g., a "star" or "quantum anomaly")
 source_location_idx = Nx // 4
-# Drastically reduced source strengths
-source_strength_mass = 1e-30       # Localized mass density (kg/m^3)
-source_strength_em = 1e-15          # Localized EM energy density (J/m^3)
-source_strength_dark = 1e-35       # Localized combined dark density (kg/m^3)
-source_D_ent = 1e-15                # Localized higher entanglement density
+# Drastically reduced source strengths further
+source_strength_mass = 1e-35       # Localized mass density (kg/m^3)
+source_strength_em = 1e-20          # Localized EM energy density (J/m^3)
+source_strength_dark = 1e-40       # Localized combined dark density (kg/m^3)
+source_D_ent = 1e-18                # Localized higher entanglement density
 
 SOURCE_T_VAC_MANIPULATED = T_VAC_PLANCK * 1e-20
 
@@ -78,9 +78,9 @@ S_field_next = np.zeros(Nx)
 S_history = np.zeros((Nt, Nx))
 S_history[0, :] = S_field_curr
 
-MIN_DX = 1e-25 # Even smaller clamp to prevent division by near-zero.
-MAX_S_FIELD_VALUE = 1.0 # Clamp S_field to prevent overflow (arbitrary upper bound)
-MIN_S_FIELD_VALUE = -1.0 # Clamp S_field to prevent underflow
+MIN_DX = 1e-20 # Slightly increased clamp to prevent division by near-zero effectively.
+MAX_S_FIELD_VALUE = 1e-2 # Clamp S_field to prevent overflow (arbitrary upper bound)
+MIN_S_FIELD_VALUE = -1e-2 # Clamp S_field to prevent underflow
 
 for t in range(1, Nt):
     S_field_next[0] = S_field_curr[0]
@@ -108,15 +108,18 @@ for t in range(1, Nt):
         dx_left = x_fib[i] - x_fib[i-1]
         dx_right = x_fib[i+1] - x_fib[i]
         
+        # Clamp dx_left and dx_right to a minimum value to prevent division by zero/near-zero
         dx_left_clamped = np.maximum(dx_left, MIN_DX)
         dx_right_clamped = np.maximum(dx_right, MIN_DX)
         
+        # Second spatial derivative (d^2S/dx^2) for non-uniform grid
         laplacian_S_term1 = S_field_curr[i+1] / (dx_right_clamped * (dx_left_clamped + dx_right_clamped))
         laplacian_S_term2 = S_field_curr[i] / (dx_left_clamped * dx_right_clamped)
         laplacian_S_term3 = S_field_curr[i-1] / (dx_left_clamped * (dx_left_clamped + dx_right_clamped))
         
         laplacian_S = 2 * (laplacian_S_term1 - laplacian_S_term2 + laplacian_S_term3)
 
+        # Rearrange the field equation for S_field_next (explicit method)
         S_field_next[i] = 2 * S_field_curr[i] - S_field_prev[i] + \
                           (dt**2) * (c**2) * (source_term_val + laplacian_S)
         
