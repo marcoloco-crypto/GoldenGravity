@@ -107,4 +107,3 @@ plt.close()
 
 print(f"Energy Coherence Optimization plot saved to: {plot_filename}")
 print("energy_coherent_optimizer.py complete.")
-

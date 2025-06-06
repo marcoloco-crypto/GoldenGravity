@@ -107,5 +107,3 @@ plt.close()
 
 print(f"Refined F_QC applications plot (v2.0) saved to: {plot_filename}")
 print("fibonacci_F_QC_applications_sim.py (v2.0) complete.")
-
-
