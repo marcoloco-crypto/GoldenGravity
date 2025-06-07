@@ -1,1 +1,1 @@
-[snippet content]
+[fixed_snippet]
