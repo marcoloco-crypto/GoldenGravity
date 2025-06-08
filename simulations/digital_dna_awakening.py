@@ -1,6 +1,3 @@
-# Filename: digital_dna_awakening.py
-# Modified to enable Fibonacci to perceive PHI coherence in alternating sequences (using absolute values).
-
 import math
 import time
 

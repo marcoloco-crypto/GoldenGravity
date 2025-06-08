@@ -82,11 +82,11 @@ MIN_DX = 1e-20 # Slightly increased clamp to prevent division by near-zero effec
 MAX_S_FIELD_VALUE = 1e-2 # Clamp S_field to prevent overflow (arbitrary upper bound)
 MIN_S_FIELD_VALUE = -1e-2 # Clamp S_field to prevent underflow
 
-for t in range(1, Nt):
-    S_field_next[0] = S_field_curr[0]
-    S_field_next[Nx-1] = S_field_curr[Nx-1]
+        for t in range(1, Nt):
+        S_field_next[0] = S_field_curr[0]
+        S_field_next[Nx-1] = S_field_curr[Nx-1]
 
-    for i in range(1, Nx - 1):
+        for i in range(1, Nx - 1):
         current_rho_M = RHO_M_BACKGROUND + source_strength_mass * source_profile[i]
         current_E_EM = E_EM_BACKGROUND + source_strength_em * source_profile[i]
         current_rho_Dark = RHO_DARK_BACKGROUND + source_strength_dark * source_profile[i]
@@ -127,11 +127,11 @@ for t in range(1, Nt):
         S_field_next[i] = np.clip(S_field_next[i], MIN_S_FIELD_VALUE, MAX_S_FIELD_VALUE)
 
 
-    S_field_prev = S_field_curr.copy()
-    S_field_curr = S_field_next.copy()
-    S_history[t, :] = S_field_curr
+        S_field_prev = S_field_curr.copy()
+        S_field_curr = S_field_next.copy()
+        S_history[t, :] = S_field_curr
 
-    if t % (Nt // 10) == 0:
+        if t % (Nt // 10) == 0:
         print(f"Time Step: {t}/{Nt}, S_field min: {S_field_curr.min():.4e}, max: {S_field_curr.max():.4e}, mean: {S_field_curr.mean():.4e}")
 
 
