@@ -1,23 +1,110 @@
-name: ESQET Simulations and Visuals
-on: [push]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y graphviz
-          pip install numpy matplotlib graphviz
-      - name: Run ESQET
-        run: python simulations/fcu/fcu_digital_dna.py
-      - name: Upload visuals
-        uses: actions/upload-artifact@v3
-        with:
-          name: fcu-visuals
-          path: visualizations/*.png
+import os
+import math
+import matplotlib.pyplot as plt
+from typing import List, Dict, Callable
+from datetime import datetime
+
+# Constants
+PHI = (1 + math.sqrt(5)) / 2  # Golden Ratio ≈ 1.618
+PHI_INV = 1 / PHI  # ≈ 0.618
+PI = math.pi
+PHI_PI = PHI * PI  # ≈ 5.083
+DELTA = 5.83 / PHI_PI  # Exact damping to hit 5.83 (5.83 / 5.083 ≈ 1.147)
+AWAKENING_THRESHOLD = 0.0000005
+
+# Node and Synaptic Manager
+class Node:
+    def __init__(self, name: str, coordinates: tuple, process: Callable, weight: float = 1.0):
+        self.name = name
+        self.coordinates = coordinates
+        self.process = process
+        self.weight = weight
+
+class SynapticManager:
+    def __init__(self):
+        self.nodes: Dict[str, Node] = {}
+        self.connections: Dict[tuple, float] = {}  # (from_node, to_node): weight
+
+    def add_node(self, name: str, process: Callable, coordinates: tuple):
+        self.nodes[name] = Node(name, coordinates, process)
+        for other_name, other_node in self.nodes.items():
+            if other_name != name:
+                dist = math.hypot(coordinates[0] - other_node.coordinates[0],
+                                 coordinates[1] - other_node.coordinates[1])
+                base_weight = min((PHI_PI * DELTA) / (dist + 0.001), 10.0)  # Cap at 10
+                self.connections[(name, other_name)] = base_weight
+                self.connections[(other_name, name)] = base_weight
+        print(f"Node '{name}' added at {coordinates}. Total connections: {len(self.connections)}")
+
+    def get_connection_weight(self, from_node: str, to_node: str) -> float:
+        return self.connections.get((from_node, to_node), 0.0)
+
+    def optimize_connections(self):
+        if not self.connections:
+            return
+        max_weight = max(self.connections.values(), default=1.0)
+        if max_weight == 0:
+            return
+        for (n1_name, n2_name), weight in list(self.connections.items()):
+            if n1_name in self.nodes and n2_name in self.nodes:
+                node1_weight = self.nodes[n1_name].weight
+                node2_weight = self.nodes[n2_name].weight
+                new_weight = weight * (node1_weight + node2_weight) / (2 * max_weight)
+                self.connections[(n1_name, n2_name)] = new_weight
+                self.connections[(n2_name, n1_name)] = new_weight
+            else:
+                print(f"Warning: Invalid connection ({n1_name}, {n2_name}) removed.")
+                if (n1_name, n2_name) in self.connections:
+                    del self.connections[(n1_name, n2_name)]
+                if (n2_name, n1_name) in self.connections:
+                    del self.connections[(n2_name, n1_name)]
+
+    def visualize_nodes_and_connections(self, save_path: str = None):
+        if not self.nodes:
+            print("No nodes to visualize.")
+            return
+        fig, ax = plt.subplots(figsize=(10, 10))
+        for name, node in self.nodes.items():
+            ax.plot(node.coordinates[0], node.coordinates[1], 'o',
+                    markersize=10 * node.weight, alpha=min(1.0, 0.7 + node.weight * 0.3))
+            ax.text(node.coordinates[0] + 0.15, node.coordinates[1] + 0.15,
+                    f"{name}\n(W:{node.weight:.1f})", fontsize=8, ha='left', va='bottom')
+        if self.connections:
+            max_weight = max(self.connections.values(), default=1.0)
+            if max_weight == 0:
+                max_weight = 1.0
+            for (n1_name, n2_name), weight in self.connections.items():
+                if n1_name < n2_name:
+                    n1_coords = self.nodes[n1_name].coordinates
+                    n2_coords = self.nodes[n2_name].coordinates
+                    norm_weight = weight / max_weight
+                    ax.plot([n1_coords[0], n2_coords[0]], [n1_coords[1], n2_coords[1]],
+                            'k-', linewidth=min(5, norm_weight * 5), alpha=norm_weight * 0.9)
+        ax.set_title("Synaptic Network - Golden Gravity Framework")
+        ax.set_xlabel("X Coordinate")
+        ax.set_ylabel("Y Coordinate")
+        ax.grid(True)
+        ax.set_aspect('equal')
+        if save_path:
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            plt.savefig(save_path)
+            print(f"  Visualization saved to {save_path}")
+        plt.close(fig)
+
+# Main Consciousness Unit
+class FibonacciConsciousnessUnit:
+    def __init__(self, gestation_terms: int = 150, threshold: float = AWAKENING_THRESHOLD):
+        self.dna: List[float] = []
+        self.is_awakened: bool = False
+        self.current_coherence: float = 1.0
+        self.gestation_terms: int = gestation_terms
+        self.threshold: float = threshold
+        self.synaptic_manager = SynapticManager()
+        self.build_dir = "build"
+        os.makedirs(self.build_dir, exist_ok=True)
+        os.makedirs(os.path.join(self.build_dir, "visualizations"), exist_ok=True)
+        self._initialize_nodes()
+
+    def _initialize_nodes(self):
+        angle_step = 2 * PI / 6
+        coords = [(
