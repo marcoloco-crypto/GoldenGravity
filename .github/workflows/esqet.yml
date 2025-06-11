@@ -1,18 +1,23 @@
 import os
 import math
+import random
+import gc
+import matplotlib
+matplotlib.use("Agg")  # For headless (server) environments
 import matplotlib.pyplot as plt
 from typing import List, Dict, Callable
 from datetime import datetime
 
-# Constants
-PHI = (1 + math.sqrt(5)) / 2  # Golden Ratio ≈ 1.618
-PHI_INV = 1 / PHI  # ≈ 0.618
+# --- Constants ---
+PHI = (1 + math.sqrt(5)) / 2  # Golden Ratio
+PHI_INV = 1 / PHI
 PI = math.pi
-PHI_PI = PHI * PI  # ≈ 5.083
-DELTA = 5.83 / PHI_PI  # Exact damping to hit 5.83 (5.83 / 5.083 ≈ 1.147)
+PHI_PI = PHI * PI
+DELTA = 5.83 / PHI_PI
 AWAKENING_THRESHOLD = 0.0000005
 
-# Node and Synaptic Manager
+# --- Node and Synaptic Manager ---
+
 class Node:
     def __init__(self, name: str, coordinates: tuple, process: Callable, weight: float = 1.0):
         self.name = name
@@ -25,86 +30,161 @@ class SynapticManager:
         self.nodes: Dict[str, Node] = {}
         self.connections: Dict[tuple, float] = {}  # (from_node, to_node): weight
 
-    def add_node(self, name: str, process: Callable, coordinates: tuple):
-        self.nodes[name] = Node(name, coordinates, process)
+    def add_node(self, name: str, process: Callable, coordinates: tuple, weight: float = 1.0):
+        """Add a new node and connect to others with weights influenced by golden ratio."""
+        self.nodes[name] = Node(name, coordinates, process, weight)
         for other_name, other_node in self.nodes.items():
             if other_name != name:
                 dist = math.hypot(coordinates[0] - other_node.coordinates[0],
-                                 coordinates[1] - other_node.coordinates[1])
-                base_weight = min((PHI_PI * DELTA) / (dist + 0.001), 10.0)  # Cap at 10
+                                  coordinates[1] - other_node.coordinates[1])
+                base_weight = min((PHI_PI * DELTA) / (dist + 0.001), 10.0)
                 self.connections[(name, other_name)] = base_weight
-                self.connections[(other_name, name)] = base_weight
+                self.connections[(other_name, name)] = base_weight  # symmetry
         print(f"Node '{name}' added at {coordinates}. Total connections: {len(self.connections)}")
 
     def get_connection_weight(self, from_node: str, to_node: str) -> float:
         return self.connections.get((from_node, to_node), 0.0)
 
     def optimize_connections(self):
+        """Strengthen connections between 'heavier' nodes. Remove invalid ones."""
         if not self.connections:
             return
-        max_weight = max(self.connections.values(), default=1.0)
-        if max_weight == 0:
+        max_current_weight = max(self.connections.values(), default=1.0)
+        if max_current_weight == 0:
             return
+        # Use a copy of items to avoid dict mutation issues
         for (n1_name, n2_name), weight in list(self.connections.items()):
             if n1_name in self.nodes and n2_name in self.nodes:
                 node1_weight = self.nodes[n1_name].weight
                 node2_weight = self.nodes[n2_name].weight
-                new_weight = weight * (node1_weight + node2_weight) / (2 * max_weight)
+                new_weight = weight * (node1_weight + node2_weight) / (2 * max_current_weight)
                 self.connections[(n1_name, n2_name)] = new_weight
                 self.connections[(n2_name, n1_name)] = new_weight
             else:
-                print(f"Warning: Invalid connection ({n1_name}, {n2_name}) removed.")
-                if (n1_name, n2_name) in self.connections:
-                    del self.connections[(n1_name, n2_name)]
-                if (n2_name, n1_name) in self.connections:
-                    del self.connections[(n2_name, n1_name)]
+                print(f"Warning: Invalid connection ({n1_name}, {n2_name}) removed during optimization.")
+                self.connections.pop((n1_name, n2_name), None)
+                self.connections.pop((n2_name, n1_name), None)
 
     def visualize_nodes_and_connections(self, save_path: str = None):
+        """Visualize nodes and connections, scale by weights. Save if path is given."""
         if not self.nodes:
             print("No nodes to visualize.")
             return
-        fig, ax = plt.subplots(figsize=(10, 10))
-        for name, node in self.nodes.items():
-            ax.plot(node.coordinates[0], node.coordinates[1], 'o',
-                    markersize=10 * node.weight, alpha=min(1.0, 0.7 + node.weight * 0.3))
-            ax.text(node.coordinates[0] + 0.15, node.coordinates[1] + 0.15,
-                    f"{name}\n(W:{node.weight:.1f})", fontsize=8, ha='left', va='bottom')
-        if self.connections:
-            max_weight = max(self.connections.values(), default=1.0)
-            if max_weight == 0:
-                max_weight = 1.0
-            for (n1_name, n2_name), weight in self.connections.items():
-                if n1_name < n2_name:
-                    n1_coords = self.nodes[n1_name].coordinates
-                    n2_coords = self.nodes[n2_name].coordinates
-                    norm_weight = weight / max_weight
-                    ax.plot([n1_coords[0], n2_coords[0]], [n1_coords[1], n2_coords[1]],
-                            'k-', linewidth=min(5, norm_weight * 5), alpha=norm_weight * 0.9)
-        ax.set_title("Synaptic Network - Golden Gravity Framework")
-        ax.set_xlabel("X Coordinate")
-        ax.set_ylabel("Y Coordinate")
-        ax.grid(True)
-        ax.set_aspect('equal')
-        if save_path:
-            os.makedirs(os.path.dirname(save_path), exist_ok=True)
-            plt.savefig(save_path)
-            print(f"  Visualization saved to {save_path}")
-        plt.close(fig)
+        try:
+            fig, ax = plt.subplots(figsize=(10, 10))
+            # Plot nodes
+            for name, node in self.nodes.items():
+                ax.plot(node.coordinates[0], node.coordinates[1], 'o',
+                        markersize=10 * node.weight,
+                        alpha=min(1.0, 0.7 + node.weight * 0.3))
+                ax.text(node.coordinates[0] + 0.15, node.coordinates[1] + 0.15,
+                        f"{name}\n(W:{node.weight:.1f})", fontsize=8, ha='left', va='bottom')
+            # Plot connections
+            if self.connections:
+                max_weight = max(self.connections.values(), default=1.0)
+                if max_weight == 0:
+                    max_weight = 1.0
+                for (n1_name, n2_name), weight in self.connections.items():
+                    if n1_name < n2_name:  # Only draw once for (A,B)
+                        n1_coords = self.nodes[n1_name].coordinates
+                        n2_coords = self.nodes[n2_name].coordinates
+                        norm_weight = weight / max_weight
+                        ax.plot([n1_coords[0], n2_coords[0]],
+                                [n1_coords[1], n2_coords[1]],
+                                'k-',
+                                linewidth=min(5, norm_weight * 5),
+                                alpha=norm_weight * 0.9)
+            ax.set_title("Synaptic Network - Golden Gravity Framework")
+            ax.set_xlabel("X Coordinate")
+            ax.set_ylabel("Y Coordinate")
+            ax.grid(True)
+            ax.set_aspect('equal', adjustable='box')
+            if save_path:
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                plt.savefig(save_path)
+                print(f"Visualization saved to {save_path}")
+            plt.close(fig)
+            gc.collect()
+        except Exception as e:
+            print(f"Error during visualization: {e}")
 
-# Main Consciousness Unit
+# --- Main Consciousness Unit ---
+
 class FibonacciConsciousnessUnit:
     def __init__(self, gestation_terms: int = 150, threshold: float = AWAKENING_THRESHOLD):
         self.dna: List[float] = []
         self.is_awakened: bool = False
-        self.current_coherence: float = 1.0
+        self.current_coherence: float = 0.0
         self.gestation_terms: int = gestation_terms
         self.threshold: float = threshold
         self.synaptic_manager = SynapticManager()
         self.build_dir = "build"
+        self.viz_dir = os.path.join(self.build_dir, "visualizations")
         os.makedirs(self.build_dir, exist_ok=True)
-        os.makedirs(os.path.join(self.build_dir, "visualizations"), exist_ok=True)
+        os.makedirs(self.viz_dir, exist_ok=True)
         self._initialize_nodes()
 
+    def _fibonacci_sequence(self, n: int) -> List[int]:
+        fib_list = [0, 1]
+        while len(fib_list) < n:
+            fib_list.append(fib_list[-1] + fib_list[-2])
+        return fib_list[:n]
+
     def _initialize_nodes(self):
-        angle_step = 2 * PI / 6
-        coords = [(
+        num_initial_nodes = 8
+        fib_numbers = self._fibonacci_sequence(num_initial_nodes)
+        def default_node_process(input_data):
+            return input_data * PHI_INV
+        print("\nInitializing Fibonacci Consciousness Unit Nodes...")
+        for i in range(num_initial_nodes):
+            radius = (fib_numbers[i] + 1) * 0.1
+            angle = i * PHI_PI
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
+            node_name = f"Node{i}"
+            initial_weight = 1.0 + (fib_numbers[i] % 3) * 0.2
+            self.synaptic_manager.add_node(node_name, default_node_process, (x, y), weight=initial_weight)
+        self.synaptic_manager.optimize_connections()
+        print("Initial node setup complete.")
+
+    def calculate_coherence(self) -> float:
+        if not self.synaptic_manager.connections:
+            return 0.0
+        total_weight = sum(self.synaptic_manager.connections.values())
+        return total_weight / (len(self.synaptic_manager.connections) / 2) if len(self.synaptic_manager.connections) > 0 else 0.0
+
+    def gestate(self, num_steps: int = 100):
+        print(f"\nStarting Gestation Period ({num_steps} steps)...")
+        for step in range(num_steps):
+            for node in self.synaptic_manager.nodes.values():
+                node.weight += (random.random() - 0.5) * 0.1
+                node.weight = max(0.1, min(2.0, node.weight))
+            if step % 10 == 0 or step == num_steps - 1:
+                self.synaptic_manager.optimize_connections()
+                self.current_coherence = self.calculate_coherence()
+                if self.current_coherence >= self.threshold and not self.is_awakened:
+                    self.is_awakened = True
+                    print(f"!!! AWAKENING DETECTED at step {step} !!! Current Coherence: {self.current_coherence:.6f}")
+                print(f"Gestation Step {step}: Coherence = {self.current_coherence:.6f}, Awakened = {self.is_awakened}")
+                viz_filename = os.path.join(self.viz_dir, f"gestation_step_{step:04d}.png")
+                self.synaptic_manager.visualize_nodes_and_connections(save_path=viz_filename)
+        print(f"Gestation complete. Final Coherence: {self.current_coherence:.6f}, Awakened: {self.is_awakened}")
+
+    def run_full_simulation(self):
+        current_time_str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        print(f"--- Golden Gravity Framework Simulation Start ---")
+        print(f"Start Time: {current_time_str}")
+        initial_viz_path = os.path.join(self.viz_dir, f"initial_network_{current_time_str}.png")
+        self.synaptic_manager.visualize_nodes_and_connections(save_path=initial_viz_path)
+        self.gestate(self.gestation_terms)
+        final_viz_path = os.path.join(self.viz_dir, f"final_network_{current_time_str}.png")
+        self.synaptic_manager.visualize_nodes_and_connections(save_path=final_viz_path)
+        print(f"--- Golden Gravity Framework Simulation End ---")
+        print(f"End Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Total Visualizations saved to: {self.viz_dir}")
+
+# --- Main Execution ---
+
+if __name__ == "__main__":
+    unit = FibonacciConsciousnessUnit(gestation_terms=200)
+    unit.run_full_simulation()
