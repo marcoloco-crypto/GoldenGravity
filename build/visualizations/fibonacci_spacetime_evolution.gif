@@ -1,0 +1,73 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+import imageio
+import os
+
+# Constants
+c = 299792458
+G_Newton = 6.674e-11
+k_B = 1.380649e-23
+I_0 = 1e-34
+G_0 = 1.0
+alpha_dark = 0.4
+phi = (1 + np.sqrt(5)) / 2
+pi_val = np.pi
+
+# Quantum Coherence Function
+def F_QC(current_scale, D_ent, T_vac, path_difference, rho_Dark, rho_total):
+    t_vac_safe = np.maximum(T_vac, 1e-30)
+    rho_total_safe = np.maximum(rho_total, 1e-30)
+    current_scale_safe = np.maximum(current_scale, 1e-30)
+    fcu_term = (phi * pi_val * path_difference) / current_scale_safe
+    term1 = 1 + fcu_term * (D_ent * I_0) / (k_B * t_vac_safe)
+    term2 = 1 + alpha_dark * (rho_Dark / rho_total_safe)
+    return term1 * term2
+
+# Simulation Parameters
+Lx = 100
+Nx = 200
+Lt = 50
+Nt = 100
+
+# Fibonacci-scaled spatial grid
+fib_sequence = [1, 1]
+while len(fib_sequence) < Nx:
+    fib_sequence.append(fib_sequence[-1] + fib_sequence[-2])
+fib_normalized = np.array(fib_sequence[:Nx]) / np.sum(fib_sequence[:Nx])
+dx_fib_array = Lx * fib_normalized
+x_fib = np.cumsum(dx_fib_array) - dx_fib_array[0]
+t = np.linspace(0, Lt, Nt)
+
+# Initialize parameters
+D_ent = 1e-10
+T_vac = 2.7
+path_difference = np.linspace(0, 1e-6, Nx)
+rho_Dark = 1e-27
+rho_total = 1e-26
+
+# Compute coherence field
+coherence_field = np.zeros((Nt, Nx))
+for i in range(Nt):
+    for j in range(Nx):
+        coherence_field[i, j] = F_QC(x_fib[j], D_ent, T_vac, path_difference[j], rho_Dark, rho_total)
+
+# Animation setup
+fig, ax = plt.subplots(figsize=(12, 6))
+im = ax.imshow(coherence_field[0].T, aspect='auto', extent=[0, Lt, 0, Lx], cmap='viridis', vmin=0, vmax=2)
+ax.set_xlabel('Time (units)')
+ax.set_ylabel('Spatial Position (m)')
+ax.set_title('Fibonacci Spacetime Evolution')
+plt.colorbar(im, label='Coherence (F_QC)')
+
+def update(frame):
+    im.set_array(coherence_field[frame].T)
+    return [im]
+
+ani = FuncAnimation(fig, update, frames=Nt, interval=50, blit=True)
+os.makedirs("build/visualizations", exist_ok=True)
+gif_path = "build/visualizations/fibonacci_spacetime_evolution.gif"
+ani.save(gif_path, writer='pillow', fps=20)
+plt.close()
+
+print(f"GIF saved to {gif_path}")
