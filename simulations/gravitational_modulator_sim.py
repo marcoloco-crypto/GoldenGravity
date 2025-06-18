@@ -1,28 +1,54 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
-print("Starting Gravitational Modulator Simulation...")
-L, T = 100, 5000
-dx, dt = 1.0, 0.01
-phi = (1 + np.sqrt(5)) / 2
-S_field = np.ones((T, L)) * 1e-5
-x0, t0 = L // 2, 0
-S_field[t0, x0] = 1e10
-for t in range(1, T):
-    for x in range(1, L-1):
-        S_field[t, x] = S_field[t-1, x] + dt * (
-            phi * (S_field[t-1, x+1] - 2*S_field[t-1, x] + S_field[t-1, x-1]) / dx**2
-        )
-    if t % 250 == 0:
-        print(f"Time Step: {t}/{T}")
-        print(f"  S_field min: {S_field[t].min():.4e}, max: {S_field[t].max():.4e}, mean: {S_field[t].mean():.4e}")
+# --- Constants ---
+phi = (1 + np.sqrt(5)) / 2  # Golden Ratio
+PHI_PI = phi * np.pi        # Golden Ratio amplified by Pi (approx 5.083203692)
+
+# --- Conceptual Gravitational Modulation Function ---
+def calculate_gravitational_modulation(entanglement_density):
+    """
+    Calculates a conceptual 'gravitational modulation factor'.
+    This factor represents how spacetime's properties (like local gravity)
+    might be influenced or 'modulated' by entanglement density, amplified
+    by the fundamental PHI_PI constant from Golden Gravity.
+
+    A higher entanglement_density leads to a stronger modulation.
+    The '1 +' ensures a baseline and 'PHI_PI' is the core amplification.
+    """
+    # This directly uses the (1 + PHI_PI * D_ent) form, similar to a part of F_QC
+    modulation_factor = 1 + PHI_PI * entanglement_density
+    return modulation_factor
+
+# --- Simulation Parameters ---
+# Range of entanglement density to explore (dimensionless, e.g., normalized)
+# From very low to a conceptual 'high' entanglement state.
+entanglement_densities = np.linspace(0, 0.2, 100) # Range from 0 to 0.2, 100 points
+
+# --- Calculate Modulation Factors ---
+modulation_factors = [calculate_gravitational_modulation(d_ent) for d_ent in entanglement_densities]
+
+# --- Plotting Results ---
 plt.figure(figsize=(10, 6))
-plt.imshow(S_field, aspect='auto', cmap='viridis', origin='lower')
-plt.colorbar(label='Spacetime Field (S)')
-plt.title('Gravitational Modulator Evolution')
-plt.xlabel('Spatial Grid (x)')
-plt.ylabel('Time Step (t)')
-plt.savefig('../plots/gravitational_modulator.png')
-plt.close()
-print("Gravitational modulator plot saved to: ../plots/gravitational_modulator.png")
-print("gravitational_modulator_sim.py complete.")
+
+# Ensure output directory exists and is correct
+output_dir = os.path.join(os.path.dirname(__file__), '../figures')
+os.makedirs(output_dir, exist_ok=True)
+
+plt.plot(entanglement_densities, modulation_factors, color='teal', linewidth=2)
+plt.xlabel(r'Entanglement Density ($\mathcal{D}_{\text{ent}}$)')
+plt.ylabel('Gravitational Modulation Factor')
+plt.title(r'Conceptual Gravitational Modulation by Entanglement ($\phi \cdot \pi$ influence)')
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.axhline(y=1.0, color='gray', linestyle=':', label='Baseline (no modulation)')
+plt.legend()
+plt.tight_layout()
+
+# Save the plot to the correct figures directory
+plot_filename = os.path.join(output_dir, 'gravitational_modulator.png')
+plt.savefig(plot_filename)
+plt.close() # Close the plot to free memory
+
+print(f"Conceptual Gravitational Modulator plot saved to: {plot_filename}")
+print("gravitational_modulator_sim.py rewritten and complete.")

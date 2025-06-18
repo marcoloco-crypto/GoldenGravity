@@ -12,22 +12,25 @@ T_VAC_PLANCK = 1.416808e32   # Vacuum Fluctuation Energy Scale (K) - Set to Plan
 
 # Coupling constants for F_QC
 alpha_dark = 0.4    # Combined Dark Matter/Energy Coupling for F_QC
-phi = (1 + np.sqrt(5)) / 2  # Golden Ratio (approx 1.618)
+phi = (1 + np.sqrt(5)) / 2  # Golden Ratio (approx 1.6180339887)
+# NEW: Combined phi * pi factor
+PHI_PI = phi * np.pi # Approximately 5.083203692
 
 # --- Refined Quantum Coherence Function (F_QC) v2.0 ---
 def F_QC(D_ent, T_vac_current, rho_Dark, rho_total):
     """
     Calculates the Refined Quantum Coherence Function F_QC (v2.0).
-    Explicitly uses Golden Ratio (phi). The I_0_PLANCK and k_B are global constants.
+    Explicitly uses the combined Golden Ratio * Pi (PHI_PI).
+    The I_0_PLANCK and k_B are global constants.
     T_vac_current is the *effective* vacuum temperature for a given scenario.
     """
     t_vac_safe = np.maximum(T_vac_current, 1e-30) # Avoid division by zero or very small T_vac
     rho_total_safe = np.maximum(rho_total, 1e-30) # Avoid division by zero or very small rho_total
 
-    # Term 1: Entanglement and Vacuum Energy, now with phi directly
+    # Term 1: Entanglement and Vacuum Energy, now with PHI_PI directly
     # Note: The ratio (I_0_PLANCK / (k_B * T_VAC_PLANCK)) is approx 1,
     # but the structure explicitly shows the constants for clarity.
-    term1 = 1 + phi * (D_ent * I_0_PLANCK) / (k_B * t_vac_safe)
+    term1 = 1 + PHI_PI * (D_ent * I_0_PLANCK) / (k_B * t_vac_safe)
     
     # Term 2: Combined Dark Matter/Energy contribution
     term2 = 1 + alpha_dark * (rho_Dark / rho_total_safe)
@@ -92,7 +95,7 @@ for i, scenario in enumerate(scenarios):
 plt.xscale('log') # Logarithmic scale for the x-axis (Length Scale)
 plt.xlabel('Length Scale (m)')
 plt.ylabel(r'Quantum Coherence Function ($\mathcal{F}_{QC}$)')
-plt.title(r'Refined $\mathcal{F}_{QC}$ (v2.0) with Golden Ratio Scaling for Applications')
+plt.title(r'Refined $\mathcal{F}_{QC}$ (v2.0) with Golden Ratio ($\phi \cdot \pi$) Scaling')
 plt.grid(True)
 plt.legend(title='Application Scenario')
 plt.tight_layout()
@@ -104,5 +107,3 @@ plt.close()
 
 print(f"Refined F_QC applications plot (v2.0) saved to: {plot_filename}")
 print("fibonacci_F_QC_applications_sim.py (v2.0) complete.")
-
-

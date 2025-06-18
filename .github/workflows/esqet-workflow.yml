@@ -33,10 +33,4 @@ jobs:
           python simulations/spacetime_evolution_sim.py
 
       - name: Upload simulation outputs
-        uses: actions/upload-artifact@v4
-        with:
-          name: simulation-outputs
-          path: |
-            plots/*.png
-            figures/*.png
-            figures/*.jpg
+
